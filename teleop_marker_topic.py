@@ -52,13 +52,10 @@ e = """
 Communications Failed
 """
 
-
 class ArucoNode(rclpy.node.Node):
     def __init__(self):
         super().__init__('aruco_node')
-        # project parameters
-        self.declare_parameter("manipulator1_topic", "False")
-        
+       
         # ArucoNode / Declare and read parameters
         self.declare_parameter("marker_size", .04)
         self.declare_parameter("aruco_dictionary_id", "DICT_5X5_250")
@@ -90,7 +87,11 @@ class ArucoNode(rclpy.node.Node):
         # Set up publishers
         self.poses_pub = self.create_publisher(PoseArray, 'aruco_poses', 10)
         self.markers_pub = self.create_publisher(ArucoMarkers, 'aruco_markers', 10)
-        
+
+        ###############topic 발행
+        self.turtle_pub = self.create_publisher(String, 'place_object', 10)
+        self.msg = String()
+                
         #self.turtle_pub = self.create_publisher(String, 'left_object', 10)
 
         # Set up fields for camera parameterss
@@ -108,7 +109,9 @@ class ArucoNode(rclpy.node.Node):
         self.distortion = np.array(self.info_msg.d)
         # Assume that camera parameters will remain the same...
         self.destroy_subscription(self.info_sub)
-
+        
+    #def init_pose(self):
+        
     def image_callback(self, img_msg):
         if self.info_msg is None:
             self.get_logger().warn("No camera info has been received!")
@@ -167,9 +170,7 @@ class ArucoNode(rclpy.node.Node):
             except Exception as e:
                 print(e)
             
-            # /aruco_marker manipulator1_topic의 parameters를 False->True로 변경
-            #self.set_parameters([rclpy.parameter.Parameter('manipulator1_topic',rclpy.Parameter.Type.STRING,'True')])
-
+           
 			# 물건을 집기
             goal_joint_angle[0] = radians(0)
             goal_joint_angle[1] = radians(20)
@@ -186,25 +187,54 @@ class ArucoNode(rclpy.node.Node):
             teleop_keyboard.send_goal_joint_space(pathtime)
             time.sleep(1)
             
-            #if marker_ids == [0]:  #0번 마커가 인식되면 특정 위치에 놓기
-            goal_joint_angle[0] = radians(0)
-            goal_joint_angle[1] = radians(-10)
-            goal_joint_angle[2] = 0.00
-            goal_joint_angle[3] = 0.00
-            pathtime = 3.0
-            teleop_keyboard.send_goal_joint_space(pathtime)
-            time.sleep(3)
-            goal_joint_angle[4] = 0.005
-            teleop_keyboard.send_tool_control_request()
-            
-            ###############topic 발행
-            self.turtle_pub = self.create_publisher(String, 'place_object', 10)
-            msg = String()
-            msg.data = ('put')
-            self.turtle_pub.publish(msg)
-            
-            
+            if marker_ids == [0]:  #0번 마커가 인식되면 특정 위치에 놓기
+                goal_joint_angle[0] = radians(-90)
+                goal_joint_angle[1] = radians(-10)
+                goal_joint_angle[2] = 0.00
+                goal_joint_angle[3] = 0.00
+                pathtime = 3.0
+                teleop_keyboard.send_goal_joint_space(pathtime)
+                time.sleep(3)
+                goal_joint_angle[4] = 0.005
+                teleop_keyboard.send_tool_control_request()
 
+                self.msg.data = ('Find_stuff0')
+                self.turtle_pub.publish(self.msg)
+            
+            elif marker_ids == [1]:  #1번 마커가 인식되면 터틀봇3에 놓기
+                goal_joint_angle[0] = radians(90)
+                goal_joint_angle[1] = radians(-10)
+                goal_joint_angle[2] = 0.00
+                goal_joint_angle[3] = 0.00
+                pathtime = 3.0
+                teleop_keyboard.send_goal_joint_space(pathtime)
+                time.sleep(3)
+                goal_joint_angle[4] = 0.005
+                teleop_keyboard.send_tool_control_request()
+                
+                self.msg.data = ('Find_stuff1')
+                self.turtle_pub.publish(self.msg)
+            
+            elif marker_ids == [2]:  #2번 마커가 인식되면 터틀봇3에 놓기
+                goal_joint_angle[0] = radians(90)
+                goal_joint_angle[1] = radians(-10)
+                goal_joint_angle[2] = 0.00
+                goal_joint_angle[3] = 0.00
+                pathtime = 3.0
+                teleop_keyboard.send_goal_joint_space(pathtime)
+                time.sleep(3)
+                goal_joint_angle[4] = 0.005
+                teleop_keyboard.send_tool_control_request()
+                
+                self.msg.data = ('Find_stuff2')
+                self.turtle_pub.publish(self.msg)
+            
+            else :
+                pass
+            
+            time.sleep(3)
+            TeleopKeyboard.init_manipulator()
+                
 class TeleopKeyboard(Node):
 
     qos = QoSProfile(depth=10)
@@ -247,6 +277,17 @@ class TeleopKeyboard(Node):
         self.goal_joint_space_req = SetJointPosition.Request()
         self.goal_task_space_req = SetKinematicsPose.Request()
         self.tool_control_req = SetJointPosition.Request()
+        
+    def init_manipulator(self):
+        goal_joint_angle[0] = radians(-20)
+        goal_joint_angle[1] = -1.4
+        goal_joint_angle[2] = 1.1
+        goal_joint_angle[3] = 0.35
+        goal_joint_angle[4] = 0.01
+        pathtime = 5.0
+        teleop_keyboard.send_goal_joint_space(pathtime)
+        teleop_keyboard.send_tool_control_request()
+        
 
     def send_goal_task_space(self):
         self.goal_task_space_req.end_effector_name = 'gripper'
@@ -348,15 +389,7 @@ def main():
     except Exception as e:
         print(e)
 
-    goal_joint_angle[0] = radians(-20)
-    goal_joint_angle[1] = -1.4
-    goal_joint_angle[2] = 1.1
-    goal_joint_angle[3] = 0.35
-    goal_joint_angle[4] = 0.01
-    pathtime = 5.0
-    teleop_keyboard.send_goal_joint_space(pathtime)
-    teleop_keyboard.send_tool_control_request()
-
+    teleop_keyboard.init_manipulator()
 
     node = ArucoNode()
     rclpy.spin(node)
@@ -366,11 +399,6 @@ def main():
     settings = None
     if os.name != 'nt':
         settings = termios.tcgetattr(sys.stdin)
-
-#    try:
-#       rclpy.init()
-#    except Exception as e:
-#        print(e)
 
     if os.name != 'nt':
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)

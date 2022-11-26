@@ -21,7 +21,7 @@ class ClientFollowPoints(Node):
     def call_back(self, msg):
         self.go_tb3 = msg.data
         #print(self.go_tb3)
-        if self.go_tb3 == 'put':
+        if self.go_tb3 == 'Find_stuff1':
             print("go turtle!")
             
             self.rgoal = PoseStamped()
