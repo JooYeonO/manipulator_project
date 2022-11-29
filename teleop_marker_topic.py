@@ -232,8 +232,8 @@ class ArucoNode(rclpy.node.Node):
             else :
                 pass
             
-            time.sleep(3)
-            TeleopKeyboard.init_manipulator()
+            #time.sleep(3)
+            #TeleopKeyboard.init_manipulator()
                 
 class TeleopKeyboard(Node):
 
@@ -277,7 +277,7 @@ class TeleopKeyboard(Node):
         self.goal_joint_space_req = SetJointPosition.Request()
         self.goal_task_space_req = SetKinematicsPose.Request()
         self.tool_control_req = SetJointPosition.Request()
-        
+        '''
     def init_manipulator(self):
         goal_joint_angle[0] = radians(-20)
         goal_joint_angle[1] = -1.4
@@ -285,10 +285,10 @@ class TeleopKeyboard(Node):
         goal_joint_angle[3] = 0.35
         goal_joint_angle[4] = 0.01
         pathtime = 5.0
-        teleop_keyboard.send_goal_joint_space(pathtime)
-        teleop_keyboard.send_tool_control_request()
+        self.send_goal_joint_space(pathtime)
+        self.send_tool_control_request()
         
-
+'''
     def send_goal_task_space(self):
         self.goal_task_space_req.end_effector_name = 'gripper'
         self.goal_task_space_req.kinematics_pose.pose.position.x = goal_kinematics_pose[0]
@@ -389,22 +389,34 @@ def main():
     except Exception as e:
         print(e)
 
-    teleop_keyboard.init_manipulator()
+    #teleop_keyboard.init_manipulator()
+    goal_joint_angle[0] = radians(-20)
+    goal_joint_angle[1] = -1.4
+    goal_joint_angle[2] = 1.1
+    goal_joint_angle[3] = 0.35
+    goal_joint_angle[4] = 0.01
+    pathtime = 5.0
+    teleop_keyboard.send_goal_joint_space(pathtime)
+    teleop_keyboard.send_tool_control_request()
+
 
     node = ArucoNode()
     rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
-
+    
     settings = None
     if os.name != 'nt':
         settings = termios.tcgetattr(sys.stdin)
 
+#    try:
+#       rclpy.init()
+#    except Exception as e:
+#        print(e)
+
     if os.name != 'nt':
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
     teleop_keyboard.destroy_node()
+    node.destroy_node()
     rclpy.shutdown()
-
 
 if __name__ == '__main__':
     main()
