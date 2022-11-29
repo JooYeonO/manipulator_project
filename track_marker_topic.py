@@ -8,7 +8,7 @@ from math import degrees, radians, sqrt, sin, cos, pi
 from tf_transformations import euler_from_quaternion #, quaternion_from_euler
 from ar_track.move_tb3 import MoveTB3
 
-TARGET_ID = 7 #int(sys.argv[]) # argv[1] = id of target marker
+TARGET_ID = 3 #int(sys.argv[]) # argv[1] = id of target marker
 
 # Turtlebot3 Specification
 MAX_LIN_SPEED =  0.22
@@ -58,12 +58,7 @@ class TrackMarker(Node):
         self.pub_tw   = self.create_publisher(Twist, '/cmd_vel', qos_profile)
         self.pub_lift = self.create_publisher(String, '/lift_ctrl_msg', qos_profile)
         self.timer    = self.create_timer(1, self.count_sec)
-        
-        ###################topic 발행
-        self.turtle_pub = self.create_publisher(String, 'start_spot', 10)
-        self.msg = String()
-        
-        
+               
         self.pose = Pose()
         self.tw   = Twist()
         self.tb3  = MoveTB3()
@@ -76,13 +71,13 @@ class TrackMarker(Node):
         self.cnt_sec = 0
         
         self.target_found = False
-        
+    '''
     def call_back(self, msg):
         self.go_turtle = msg.data
         if self.go_turtle == 'Arrival_at_marker3':
             print('Start aruco_node')
             TARGET_ID = 3
- 
+    '''
     def get_marker_pose_(self, msg):
 
         """
