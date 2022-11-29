@@ -73,7 +73,7 @@ class ClientFollowPoints(Node):
         self._send_goal_future = self._client.send_goal_async(msg, feedback_callback=self.feedback_callback)
         self._send_goal_future.add_done_callback(self.goal_response_callback)
         
-        self.msg.data = ('Arrival_at_marker4')
+        self.msg.data = ('Arrival_at_marker3')
         self.turtle_pub.publish(self.msg)
         
     def goal_response_callback(self, future):
