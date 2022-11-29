@@ -5,6 +5,8 @@ from rclpy.action import ActionClient
 from action_msgs.msg import GoalStatus
 from nav2_msgs.action import FollowWaypoints
 from std_msgs.msg import String
+from tf_transformations import quaternion_from_euler
+from math import radians
 # from rclpy.duration import Duration # Handles time for ROS 2
 
 class ClientFollowPoints(Node):
@@ -17,33 +19,47 @@ class ClientFollowPoints(Node):
         self.create_subscription(String, '/place_object', self.call_back , 10)
         self.go_tb3 = String()
        
+        ###############topic 발행
+        self.turtle_pub = self.create_publisher(String, 'go_turtle', 10)
+        self.msg = String()
         
     def call_back(self, msg):
         self.go_tb3 = msg.data
         #print(self.go_tb3)
         if self.go_tb3 == 'Find_stuff1':
-            print("go turtle!")
-            
-            self.rgoal = PoseStamped()
-            self.rgoal.header.frame_id = "map"
-            self.rgoal.header.stamp.sec = 0
-            self.rgoal.header.stamp.nanosec = 0
-            
-            self.rgoal.pose.position.z = -0.00143
-            self.rgoal.pose.position.x = 0.281
-            self.rgoal.pose.position.y = -1.0
+            print("turtle is Carring stuff1!")
+            print('-------------') 
             '''
-            self.rgoal.pose.position.z = -0.00143
-            self.rgoal.pose.position.x = -0.285
-            self.rgoal.pose.position.y = 1.08
-            '''
-            self.rgoal.pose.orientation.w = 1.0
             print('Goal : (x, y, z) = ({}, {}, {})'.format(
                 self.rgoal.pose.position.x,
                 self.rgoal.pose.position.y,
                 self.rgoal.pose.position.z,
             ))
             print('-------------') 
+            '''
+            self.rgoal = PoseStamped()
+            self.rgoal.header.frame_id = "map"
+            self.rgoal.header.stamp.sec = 0
+            self.rgoal.header.stamp.nanosec = 0
+            
+            #3번 AR마커(도착지점) 좌표
+            self.rgoal.pose.position.z = 0.0403
+            self.rgoal.pose.position.x = -2.14
+            self.rgoal.pose.position.y = 0.0306
+            
+            #euler = (0.0, 0.0, radians(90))
+            quart = quaternion_from_euler(radians(120), 0.0, 0.0, 'rzyx')
+            self.rgoal.pose.orientation.x = quart[0]
+            self.rgoal.pose.orientation.y = quart[1]
+            self.rgoal.pose.orientation.z = quart[2]
+            self.rgoal.pose.orientation.w = quart[3]
+            #self.rgoal.pose.orientation.w = 1.0
+            '''
+            #4번 AR마커(시작지점) 좌표
+            self.rgoal.pose.position.z = -0.00143
+            self.rgoal.pose.position.x = 0.121
+            self.rgoal.pose.position.y = -0.0068
+            '''
             mgoal = [self.rgoal]
         
             self.send_points(mgoal)
@@ -56,7 +72,10 @@ class ClientFollowPoints(Node):
         self._client.wait_for_server()
         self._send_goal_future = self._client.send_goal_async(msg, feedback_callback=self.feedback_callback)
         self._send_goal_future.add_done_callback(self.goal_response_callback)
-
+        
+        self.msg.data = ('Arrival_at_marker4')
+        self.turtle_pub.publish(self.msg)
+        
     def goal_response_callback(self, future):
         goal_handle = future.result()
         if not goal_handle.accepted:
@@ -84,4 +103,3 @@ def main(args=None):
     print('client inited')
 
     rclpy.spin(follow_points_client)
-
